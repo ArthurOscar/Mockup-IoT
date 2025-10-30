@@ -6,7 +6,6 @@ PubSubClient mqtt(client);
 
 const String BrokerURL = "test.mosquitto.org"; //endereço do broker público
 const int BrokerPort = 1883; //porta do broker público
-
 const String BrokerUser = ""; //usuário do servidor
 const String BrokerPass = ""; //senha do servidor
 
@@ -32,13 +31,25 @@ void setup() {
     Serial.print(".");
     delay(200);
   }  
+  mqtt.subscribe("Topico-DSM14");
+  mqtt.setCallback(callback); // Recebe a mensagem
   Serial.println("\nConectado ao Broker!");
 }
 
 void loop() {
-  String mensagem = "Nome: Arthur";
-  mensagem == "oi";
-  mqtt.publish("Topico-DSM14" , mensagem.c_str());
+  mqtt.publish("Acender" , "Apagar"); // Envia a mensagem
   mqtt.loop();
   delay(1000);
+}
+
+void callback(char* topic, type* payload, unsigned int length){
+  String msg = "";
+  for(int i = 0; i < length; i++){
+    msg += (char) payload(1);
+  }
+  if(topic="Iluminação" && msg = "Acender"){ // Verifica mensagem do tópico de luz do S1 e fala para acender led
+    digitalWrite(2,HIGH);
+  } else if (topic="Iluminação" && msg = "Apagar"){ // Verifica mensagem do tópico de luz do S1 e fala para apagar led
+    digitalWrite(2,LOW);
+  }
 }
