@@ -36,5 +36,10 @@ while(!mqtt.connected()){
 }
 
 void loop() {
-  
+ String mensagem = "Leonardo Henrique: ";
+ mensagem += "oi gato de botas";
+ mqtt.publish("Topico-DSM14" , mensagem.c_str());
+ mqtt.loop();
+ delay(1000);
+ 
 }
