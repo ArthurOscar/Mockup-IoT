@@ -1,22 +1,16 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include "env.h"
 
 WiFiClient client;
 PubSubClient mqtt(client);
 
-const String BrokerURL = "test.mosquitto.org"; //endereço do broker público
-const int BrokerPort = 1883; //porta do broker público
 
-const String BrokerUser = ""; //usuário do servidor
-const String BrokerPass = ""; //senha do servidor
-
-const String SSID = "FIESC_IOT_EDU";
-const String PASS = "8120gv08";
 
 void setup() {
   Serial.begin(115200);
   Serial.println("Conectando no WiFi");
-  WiFi.begin(SSID,PASS); //Tenta conectar na rede
+  WiFi.begin(WIFI_SSID,WIFI_PASS); //Tenta conectar na rede
   while(WiFi.status() != WL_CONNECTED){
     Serial.println(".");
     delay(200);
@@ -26,15 +20,15 @@ void setup() {
 
 
   Serial.println("Conectando ao Broker...");
-  mqtt.setServer(BrokerURL.c_str(),BrokerPort);
+  mqtt.setServer(BROKER_URL,BROKER_Port);
   String BoardID = "S1";
   BoardID += String(random(0xffff),HEX);
-  mqtt.connect(BoardID.c_str() , BrokerUser.c_str() , BrokerPass.c_str());
+  mqtt.connect(BoardID.c_str() , BROKER_USER , BROKER_PASS);
   while(!mqtt.connected()){
     Serial.print(".");
     delay(200);
   }  
-  mqtt.subscribe("Topico-DSM14");
+  mqtt.subscribe("TOPIC_ILUM");
   mqtt.setCallback(callbacck);
   Serial.println("\nConectado ao Broker!");
 }
@@ -52,9 +46,9 @@ void callback(char* topic, byte* payload, unsigned int length){
  for(int i =0 i < length; i++){
   msg += (char) payload[i];
  }
- if(topic == "iluminacao" && msg == "Acender"){
+ if(topic =="TOPIC_ILUM && msg == "Acender"){
   digitalWrite(2,HIGH);
- }else if(topic == "iluminacao" && msg == "Apagar"){
+ }else if(topic == TOPIC_ILUM && msg == "Apagar"){
   digitalWrite(2,Low);
  }
 }
