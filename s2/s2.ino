@@ -29,9 +29,17 @@ While(!mqtt.connected()){
   Serial.print(".");
   delay(200);
  }
+ mqtt.subscribe("Topico-DSM14")
  Serial,println("\nConectado ao Broker")
 }
 
 void loop() {
+  String mensagem = "Lucas: taoo seu zika";
+  mensagem =="taoo seu zika"
+  mqtt.publish("Topico-DSM14", mensagem.c_str())
+  mqtt.loop();
+  delay(1000);
   
 }
+
+void callback(char* topic, type*paylod,unsigmed0)
