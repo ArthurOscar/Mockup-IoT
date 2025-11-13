@@ -2,6 +2,7 @@
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 #include "env.h"
+#include <DHT.h>
 
 WiFiClientSecure client;
 PubSubClient mqtt(client);
@@ -14,6 +15,7 @@ void setup() {
   Serial.begin(115200);
   pinMode(ldr, INPUT);
   pinMode(19, OUTPUT);
+  threshold = analogRead(ldr);
   client.setInsecure();
   Serial.println("Conectando no WiFi");
   WiFi.begin(WIFI_SSID, WIFI_PASS);  //Tenta conectar na rede
@@ -35,19 +37,20 @@ void setup() {
   mqtt.subscribe(TOPIC_ILUM);
   mqtt.setCallback(callback);  // Recebe a mensagem
   Serial.println("\nConectado ao Broker!");
+  Serial.println(threshold);
 }
 
 void loop() {
   int valor_ldr = analogRead(ldr);
   // Serial.println(valor_ldr);
-  if (valor_ldr > 2500) {
-    mqtt.publish(TOPIC_ILUM, "Acender");  // Envia a mensagem
+  if (valor_ldr > threshold) {
+    mqtt.publish(TOPIC_ILUM, "Escuro");  // Envia a mensagem
     mqtt.loop();
-    delay(1000);
+    delay(2000);
   } else {
-    mqtt.publish(TOPIC_ILUM, "Apagar");  // Envia a mensagem
+    mqtt.publish(TOPIC_ILUM, "Claro");  // Envia a mensagem
     mqtt.loop();
-    delay(1000);
+    delay(2000);
   }
 }
 
@@ -57,11 +60,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
     msg += (char)payload[i];
   }
   msg = msg.c_str();
-  if (strcmp(topic,TOPIC_ILUM) == 0 && msg == "Acender") {  // Verifica mensagem do tópico de luz do S1 e fala para acender led
+  if (strcmp(topic,TOPIC_ILUM) == 0 && msg == "Claro") {  // Verifica mensagem do tópico de luz do S1 e fala para acender led
     Serial.println(msg);
-    digitalWrite(19, HIGH);
-  } else if (strcmp(topic,TOPIC_ILUM)==0 && msg == "Apagar") {  // Verifica mensagem do tópico de luz do S1 e fala para apagar led
     digitalWrite(19, LOW);
+  } else if (strcmp(topic,TOPIC_ILUM)==0 && msg == "Escuro") {  // Verifica mensagem do tópico de luz do S1 e fala para apagar led
+    digitalWrite(19, HIGH);
     Serial.println(msg);
   }
 }
