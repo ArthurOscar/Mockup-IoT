@@ -3,9 +3,12 @@
 #include <PubSubClient.h>
 #include "env.h"
 #include <DHT.h>
+#define DHTPIN 4
+#define DHTTYPE DHT11 // tipo do sensor
 
 WiFiClientSecure client;
 PubSubClient mqtt(client);
+DHT dht(DHTPIN, DHTTYPE);
 
 
 const byte ldr = 34;
@@ -15,6 +18,7 @@ void setup() {
   Serial.begin(115200);
   pinMode(ldr, INPUT);
   pinMode(19, OUTPUT);
+  dht.begin();
   threshold = analogRead(ldr);
   client.setInsecure();
   Serial.println("Conectando no WiFi");
@@ -42,16 +46,18 @@ void setup() {
 
 void loop() {
   int valor_ldr = analogRead(ldr);
-  // Serial.println(valor_ldr);
+  float umidade = dht.readHumidity();
+  float temp = dht.readTemperature();
+  Serial.printf("Temperatura: %.2f  ", temp);
+  Serial.printf("Umidade: %.2f\n", umidade);
   if (valor_ldr > threshold) {
     mqtt.publish(TOPIC_ILUM, "Escuro");  // Envia a mensagem
-    mqtt.loop();
-    delay(2000);
   } else {
     mqtt.publish(TOPIC_ILUM, "Claro");  // Envia a mensagem
-    mqtt.loop();
-    delay(2000);
   }
+  mqtt.publish("s1/temperatura", String(temp).c_str());
+  mqtt.publish("s1/umidade", String(umidade).c_str());
+  delay(2000);
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
