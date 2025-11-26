@@ -3,12 +3,12 @@
 #include <PubSubClient.h>
 #include "env.h"
 
-#define PIN_FRENTE 25
-#define PIN_TRAS   26
+#define PIN_FRENTE 32
+#define PIN_TRAS   33
 
-#define LED_R 14
-#define LED_G 12
-#define LED_B 13
+#define LED_R 26
+#define LED_G 27
+#define LED_B 14
 
 WiFiClientSecure client;
 PubSubClient mqtt(client);
@@ -28,12 +28,12 @@ void piscarCor(int r, int g, int b, int tempo, int repeticoes) {
   }
 }
 
-void tremFrente() {
+void tremAdiante() {
   digitalWrite(PIN_FRENTE, HIGH);
   digitalWrite(PIN_TRAS, LOW);
 }
 
-void tremTras() {
+void tremAtras() {
   digitalWrite(PIN_FRENTE, LOW);
   digitalWrite(PIN_TRAS, HIGH);
 }
@@ -56,12 +56,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   Serial.println("Mensagem recebida: " + msg);
 
-  if (msg == "Trem_Frente") {
-    tremFrente();
+  if (msg == "Trem_Adiante") {
+    tremAdiante();
     publicarStatus("ANDANDO");
   } 
-  else if (msg == "Trem_Tras") {
-    tremTras();
+  else if (msg == "Trem_Atras") {
+    tremAtras();
     publicarStatus("ANDANDO");
   }
   else if (msg == "Trem_Parar") {
