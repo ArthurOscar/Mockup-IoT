@@ -17,7 +17,7 @@ void setup() {
   }
   Serial.println("\nConectado com Sucesso no WiFi!");
 
-  Serial.println("Conectando ao Broker...");
+c:\Users\leonardo_hs_leite\Documents\Mockup-IoT\S3\S3.ino  Serial.println("Conectando ao Broker...");
   mqtt.setServer(BROKER_URL,BROKER_PORT);
   String BoardID = "S1";
   BoardID += String(random(0xffff),HEX);
