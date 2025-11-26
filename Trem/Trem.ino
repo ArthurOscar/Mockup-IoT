@@ -1,50 +1,120 @@
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 #include "env.h"
 
-WiFiClient client;
+#define PIN_FRENTE 25
+#define PIN_TRAS   26
+
+#define LED_R 14
+#define LED_G 12
+#define LED_B 13
+
+WiFiClientSecure client;
 PubSubClient mqtt(client);
 
+void setColor(int r, int g, int b) {
+  digitalWrite(LED_R, r);
+  digitalWrite(LED_G, g);
+  digitalWrite(LED_B, b);
+}
 
+void piscarCor(int r, int g, int b, int tempo, int repeticoes) {
+  for (int i = 0; i < repeticoes; i++) {
+    setColor(r, g, b);
+    delay(tempo);
+    setColor(0, 0, 0);
+    delay(tempo);
+  }
+}
+
+void tremFrente() {
+  digitalWrite(PIN_FRENTE, HIGH);
+  digitalWrite(PIN_TRAS, LOW);
+}
+
+void tremTras() {
+  digitalWrite(PIN_FRENTE, LOW);
+  digitalWrite(PIN_TRAS, HIGH);
+}
+
+void pararTrem() {
+  digitalWrite(PIN_FRENTE, LOW);
+  digitalWrite(PIN_TRAS, LOW);
+}
+
+void publicarStatus(const char* status) {
+  mqtt.publish(TOPIC_STATUS, status);
+  Serial.println(String("Status enviado: ") + status);
+}
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  String msg;
+  for (int i = 0; i < length; i++) {
+    msg += (char)payload[i];
+  }
+
+  Serial.println("Mensagem recebida: " + msg);
+
+  if (msg == "Trem_Frente") {
+    tremFrente();
+    publicarStatus("ANDANDO");
+  } 
+  else if (msg == "Trem_Tras") {
+    tremTras();
+    publicarStatus("ANDANDO");
+  }
+  else if (msg == "Trem_Parar") {
+    pararTrem();
+    publicarStatus("PARADO");
+  }
+}
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("Conectando no WiFi");
-  WiFi.begin(WIFI_SSID,WIFI_PASS); //Tenta conectar na rede
-  while(WiFi.status() != WL_CONNECTED){
-    Serial.println(".");
-    delay(200);
+
+  pinMode(PIN_FRENTE, OUTPUT);
+  pinMode(PIN_TRAS, OUTPUT);
+  pinMode(LED_R, OUTPUT);
+  pinMode(LED_G, OUTPUT);
+  pinMode(LED_B, OUTPUT);
+
+  client.setInsecure();
+  Serial.println("Conectando ao WiFi...");
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(300);
   }
-  Serial.println("\nConectado com Sucesso no WiFi!");
+
+  Serial.println("WiFi Conectado!");
+
+  mqtt.setServer(BROKER_URL, BROKER_PORT);
+  mqtt.setCallback(callback);
 
   Serial.println("Conectando ao Broker...");
-  mqtt.setServer(BROKER_URL,BROKER_PORT);
-  String BoardID = "Trem";
-  BoardID += String(random(0xffff),HEX);
-  mqtt.connect(BoardID.c_str() , BROKER_USER , BROKER_PASS);
-  while(!mqtt.connected()){
-    Serial.print(".");
-    delay(200);
-  }  
-  mqtt.subscribe(TOPIC_ILUM);
-  mqtt.setCallback(callback); // Recebe a mensagem
-  Serial.println("\nConectado ao Broker!");
+
+  while (!mqtt.connected()) {
+    mqtt.connect("Placa_Trem", BROKER_USER, BROKER_PASS);
+    delay(300);
+  }
+
+  Serial.println("Broker Conectado!");
+
+  piscarCor(0, 1, 0, 200, 3);
+  mqtt.subscribe(TOPIC_TREM);
+  setColor(0,1,0);
+  publicarStatus("PARADO");
 }
 
 void loop() {
-  mqtt.publish(TOPIC_ILUM , "Acender"); // Envia a mensagem
   mqtt.loop();
-  delay(1000);
-}
 
-void callback(char* topic, type* payload, unsigned int length){
-  String msg = "";
-  for(int i = 0; i < length; i++){
-    msg += (char) payload(1);
+  if (digitalRead(PIN_FRENTE) || digitalRead(PIN_TRAS)) {
+    piscarCor(1, 0, 0, 300, 1);
+  } else {
+    setColor(0, 1, 0);
   }
-  if(topic=TOPIC_ILUM && msg = "Acender"){ // Verifica mensagem do tópico de luz do S1 e fala para acender led
-    digitalWrite(2,HIGH);
-  } else if (topic=TOPIC_ILUM && msg = "Apagar"){ // Verifica mensagem do tópico de luz do S1 e fala para apagar led
-    digitalWrite(2,LOW);
-  }
+
+  delay(100);
 }
