@@ -42,7 +42,7 @@ void publicarStatus(const char* status) {
 void callback(char* topic, byte* payload, unsigned int length) {
   String msg;
   for (int i = 0; i < length; i++) {
-    msg += (char)payload[i];
+    msg += (char)payload[i]; // Recebe a mensagem e transforma em texto
   }
 
   Serial.println("Mensagem recebida: " + msg);
@@ -50,12 +50,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if (msg == "Trem_Adiante") {
     tremAdiante();
     publicarStatus("ANDANDO");
-  } 
-  else if (msg == "Trem_Atras") {
+  } else if (msg == "Trem_Atras") {
     tremAtras();
     publicarStatus("ANDANDO");
-  }
-  else if (msg == "Trem_Parar") {
+  } else if (msg == "Trem_Parar") {
     pararTrem();
     publicarStatus("PARADO");
   }
