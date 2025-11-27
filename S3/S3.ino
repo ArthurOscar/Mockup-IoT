@@ -1,17 +1,17 @@
-#include <WiFi.h>
+#include <WiFi.h> // conecta o esp32 
 #include <WiFiClientSecure.h>
-#include <PubSubClient.h>
-#include <ESP32Servo.h>
-#include "env.h"
+#include <PubSubClient.h> //comunicação via MQTT
+#include <ESP32Servo.h> // controla o servo motor
+#include "env.h" credenciais senha,broker
 
 WiFiClientSecure client;
-PubSubClient mqtt(client);
+PubSubClient mqtt(client); // cliente que usa conexão 
 
 Servo meuServo;
 
 const byte SERVO_PIN = 18;
-const byte TRIGGER_PIN = 26;
-const byte ECHO_PIN = 25;
+const byte TRIGGER_PIN = 26; //trigger ultrassonico
+const byte ECHO_PIN = 25; //echo ultrassonico
 
 unsigned long lastMsg = 0;
 char msg[50];
@@ -30,9 +30,9 @@ void conectaWiFi() {
   Serial.println(WiFi.localIP());
 }
 
-void conectaMQTT() {
+void conectaMQTT() { // gera im ID aleatorio pro esp32 no mqtt
   while (!mqtt.connected()) {
-    Serial.print("Conectando ao broker MQTT...");
+    Serial.print("Conectando ao broker MQTT..."); //tenta conectar com o broker
     String clientId = "ESP32Client-";
     clientId += String(random(0xffff), HEX);
 
@@ -49,19 +49,19 @@ void conectaMQTT() {
 }
 
 long lerDistancia() {
-  digitalWrite(TRIGGER_PIN, LOW);
+  digitalWrite(TRIGGER_PIN, LOW); //manda um pulso
   delayMicroseconds(2);
   digitalWrite(TRIGGER_PIN, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIGGER_PIN, LOW);
 
-  long duracao = pulseIn(ECHO_PIN, HIGH);
+  long duracao = pulseIn(ECHO_PIN, HIGH); // o echo recebe o tempo que o som levou para voltar
   long distancia = duracao * 0.034 / 2;
 
   return distancia;
 }
 
-void callback(char* topic, byte* payload, unsigned int length) {
+void callback(char* topic, byte* payload, unsigned int length) { // converte o payload para string
   String msg = "";
   for (int i = 0; i < length; i++) {
     msg += (char)payload[i];
@@ -72,7 +72,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print(": ");
   Serial.println(msg);
 
-  if (String(topic) == TOPIC_ILUM) {
+  if (String(topic) == TOPIC_ILUM) { // verifica a executação das açoes no servo
     if (msg == "Acender") {
       for (int pos = 0; pos <= 180; pos++) {
         meuServo.write(pos);
@@ -108,7 +108,7 @@ void loop() {
   mqtt.loop();
 
   unsigned long agora = millis();
-  if (agora - lastMsg > 2000) {
+  if (agora - lastMsg > 2000) { // a cada dois segundos mede distancia
     lastMsg = agora;
 
     long distancia = lerDistancia();
@@ -116,7 +116,7 @@ void loop() {
     Serial.print(distancia);
     Serial.println(" cm");
 
-    if (distancia > 0 && distancia < 10) {
+    if (distancia > 0 && distancia < 10) { // verifica se algum objeto esta perto
       if (!objetoProximoAnterior) { 
         mqtt.publish(TOPIC_ILUM, "Objeto proximo");
         Serial.println("Objeto próximo! Enviado ao MQTT.");
