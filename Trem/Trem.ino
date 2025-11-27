@@ -4,7 +4,7 @@
 #include "env.h"
 
 #define PIN_FRENTE 32
-#define PIN_TRAS   33
+#define PIN_TRAS 33
 
 #define LED_R 26
 #define LED_G 27
@@ -17,15 +17,6 @@ void setColor(int r, int g, int b) {
   digitalWrite(LED_R, r);
   digitalWrite(LED_G, g);
   digitalWrite(LED_B, b);
-}
-
-void piscarCor(int r, int g, int b, int tempo, int repeticoes) {
-  for (int i = 0; i < repeticoes; i++) {
-    setColor(r, g, b);
-    delay(tempo);
-    setColor(0, 0, 0);
-    delay(tempo);
-  }
 }
 
 void tremAdiante() {
@@ -101,9 +92,10 @@ void setup() {
 
   Serial.println("Broker Conectado!");
 
-  piscarCor(0, 1, 0, 200, 3);
+  // LED verde indicando pronto
+  setColor(0, 1, 0);
+
   mqtt.subscribe(TOPIC_TREM);
-  setColor(0,1,0);
   publicarStatus("PARADO");
 }
 
@@ -111,8 +103,10 @@ void loop() {
   mqtt.loop();
 
   if (digitalRead(PIN_FRENTE) || digitalRead(PIN_TRAS)) {
-    piscarCor(1, 0, 0, 300, 1);
+    // Trem andando → LED vermelho fixo
+    setColor(1, 0, 0);
   } else {
+    // Trem parado → LED verde fixo
     setColor(0, 1, 0);
   }
 
