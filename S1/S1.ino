@@ -33,24 +33,21 @@ void setup() {
   }
   Serial.println("\nConectado com Sucesso no WiFi!");
 
-<<<<<<< HEAD
-c:\Users\leonardo_hs_leite\Documents\Mockup-IoT\S3\S3.ino  Serial.println("Conectando ao Broker...");
-  mqtt.setServer(BROKER_URL,BROKER_PORT);
-=======
-  Serial.println("Conectando ao Broker...");
-  mqtt.setServer(BROKER_URL, BROKER_PORT);
->>>>>>> 39face28cde36d5f882ff751387e062a567c291c
-  String BoardID = "S1";
-  BoardID += String(random(0xffff), HEX);
-  mqtt.connect(BoardID.c_str(), BROKER_USER, BROKER_PASS);
-  while (!mqtt.connected()) {
-    Serial.print(".");
-    delay(200);
-  }
-  mqtt.subscribe(TOPIC_ILUM);
-  mqtt.setCallback(callback);  // Recebe a mensagem
-  Serial.println("\nConectado ao Broker!");
-  Serial.println(threshold);
+Serial.println("Conectando ao Broker...");
+mqtt.setServer(BROKER_URL,BROKER_PORT);
+Serial.println("Conectando ao Broker...");
+mqtt.setServer(BROKER_URL, BROKER_PORT);
+String BoardID = "S1";
+BoardID += String(random(0xffff), HEX);
+mqtt.connect(BoardID.c_str(), BROKER_USER, BROKER_PASS);
+while (!mqtt.connected()) {
+  Serial.print(".");
+  delay(200);
+}
+mqtt.subscribe(TOPIC_ILUM);
+mqtt.setCallback(callback);  // Recebe a mensagem
+Serial.println("\nConectado ao Broker!");
+Serial.println(threshold);
 }
 
 long lerDistancia() {
